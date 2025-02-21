@@ -5,6 +5,7 @@ import {
   getAllCoaches,
   getAllSponsors,
   getAllUsers,
+  getAthlete,
   getLeaderboard,
 } from '../controllers/fetchAllController.js';
 
@@ -19,5 +20,7 @@ router.post('/getAllCoaches', verifyToken, getAllCoaches);
 router.post('/getAllSponsors', verifyToken, getAllSponsors);
 
 router.post('/getLeaderboardStats', verifyToken, getLeaderboard);
+
+router.get('/getAthlete/:athleteId', verifyToken, getAthlete);
 
 export default router;

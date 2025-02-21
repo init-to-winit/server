@@ -316,3 +316,57 @@ export const getLeaderboard = async (req, res) => {
     });
   }
 };
+
+export const getAthlete = async (req, res) => {
+  try {
+    const { athleteId } = req.params;
+
+    if (!athleteId) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Athlete ID is required' });
+    }
+
+    // Fetch all required documents in parallel
+    const [athleteSnap, dietarySnap, healthcareSnap, performanceSnap] =
+      await Promise.all([
+        db.collection('Athletes').doc(athleteId).get(),
+        db.collection('Dietary').doc(athleteId).get(),
+        db.collection('Healthcare').doc(athleteId).get(),
+        db.collection('AthletePerformance').doc(athleteId).get(),
+      ]);
+
+    // Check if athlete exists
+    if (!athleteSnap.exists) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Athlete not found' });
+    }
+
+    // Get document data (if it exists)
+    const athleteInfo = athleteSnap.data();
+    const dietaryInfo = dietarySnap.exists ? dietarySnap.data() : {};
+    const healthcareDetails = healthcareSnap.exists
+      ? healthcareSnap.data()
+      : {};
+    const performanceStats = performanceSnap.exists
+      ? performanceSnap.data()
+      : {};
+
+    // Construct structured response
+    return res.status(200).json({
+      success: true,
+      athleteData: {
+        basicInfo: athleteInfo,
+        dietaryInfo: dietaryInfo,
+        healthcareDetails: healthcareDetails,
+        performanceStats: performanceStats,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching athlete data:', error);
+    return res
+      .status(500)
+      .json({ success: false, message: 'Internal server error' });
+  }
+};
