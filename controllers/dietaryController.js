@@ -61,7 +61,7 @@ export const addDietaryPlan = async (req, res) => {
     }
 
     // Save the dietary plan with a fixed schema
-    await db.collection('dietary').doc(id).set({ dietaryPlan });
+    await db.collection('Dietary').doc(id).set({ dietaryPlan });
 
     return res.status(201).json({
       success: true,
@@ -88,7 +88,7 @@ export const updateDietaryPlan = async (req, res) => {
     }
 
     // Fetch current dietary plan from Firestore
-    const dietaryDoc = await db.collection('dietary').doc(id).get();
+    const dietaryDoc = await db.collection('Dietary').doc(id).get();
     if (!dietaryDoc.exists) {
       return res
         .status(404)
@@ -122,7 +122,7 @@ export const updateDietaryPlan = async (req, res) => {
     }
 
     // Save updated dietary plan in Firestore
-    await db.collection('dietary').doc(id).update({ dietaryPlan: updatedPlan });
+    await db.collection('Dietary').doc(id).update({ dietaryPlan: updatedPlan });
 
     return res.status(200).json({
       success: true,
@@ -133,6 +133,34 @@ export const updateDietaryPlan = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error, could not update dietary plan',
+    });
+  }
+};
+
+export const getDietaryPlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fetch dietary plan from Firestore
+    const dietaryDoc = await db.collection('Dietary').doc(id).get();
+
+    if (!dietaryDoc.exists) {
+      return res.status(404).json({
+        success: true,
+        message: 'Dietary plan not available in database',
+        dietaryPlan: [],
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      dietaryPlan: dietaryDoc.data().dietaryPlan,
+    });
+  } catch (error) {
+    console.error('Error fetching dietary plan:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error, could not fetch dietary plan',
     });
   }
 };
