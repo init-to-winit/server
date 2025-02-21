@@ -69,8 +69,21 @@ export const getDietarySuggestions = async (req, res) => {
     }
 
     // Construct AI prompt
-    const prompt = `Generate a dietary plan for an athlete with the following data. Focus on improvements and adjustments to the existing plan. Provide recommendations on calorie intake, macronutrient ratios, meal plan modifications (including specific food suggestions), and hydration strategies. Explain the rationale behind each recommendation.
+    const prompt = `Generate a dietary plan for an athlete. Return the suggested values and rationales in JSON format as shown below.
 
+Example JSON Output:
+{
+  \"calorie_suggestion\": \"[calories]\",
+  \"protein_suggestion\": \"[grams]\",
+  \"carbs_suggestion\": \"[grams]\",
+  \"fats_suggestion\": \"[grams]\",
+  \"breakfast_suggestion\": \"[items]\",
+  \"lunch_suggestion\": \"[items]\",
+  \"dinner_suggestion\": \"[items]\",
+  \"food_rationale\": \"[rationale of food]\",
+  \"hydration_suggestion\": \"[suggested water intake in liters]\",
+  \"hydration_rationale\": \"[rationale]\"
+}
 Athlete Data:
 {
   "dietaryPlan": ${JSON.stringify(dietaryData)},
@@ -111,8 +124,19 @@ export const getPerformanceSuggestions = async (req, res) => {
         .json({ error: 'Incomplete data for performance suggestions' });
     }
 
-    const prompt = `Provide performance improvement suggestions for an athlete with the following data. Focus on training adjustments, mental performance strategies, strength and conditioning recommendations, and areas for improvement based on their wins/losses. Explain the reasoning behind each recommendation.
+    const prompt = `Provide performance improvement suggestions. Return values and rationales in JSON format as shown below.
 
+Example JSON Output:
+{
+ \"training_frequencyn\": \"[sessions/week]\",
+  \"training_frequency_rationale\": \"[rationale]\",
+  \"strength_conditioning_focus\": \"[focus area]\",
+  \"strength_rationale\": \"[rationale]\",
+  \"mental_strategy_suggestion\": \"[strategy]\",
+  \"mental_strategy_rationale\": \"[rationale]\",
+  \"loss_analysis_suggestion\": \"[analysis focus]\",
+  \"loss_analysis_rationale\": \"[rationale]\"
+}
 Athlete Data:
 {
   "performanceDetails": ${JSON.stringify(performanceData)},
@@ -154,8 +178,18 @@ export const getHealthcareSuggestions = async (req, res) => {
         .json({ error: 'Incomplete data for healthcare suggestions' });
     }
 
-    const prompt = `Generate healthcare and injury prevention recommendations for an athlete with the following data. Focus on managing existing injuries, optimizing sleep, monitoring hydration, and identifying potential risk factors. Include recommendations for specific therapies or interventions. Explain the rationale behind each recommendation.
-
+    const prompt = `Generate healthcare recommendations. Return values and rationales in JSON format as shown below.
+    Example JSON Output:
+{
+  \"injury_management_suggestion\": \"[strategy]\",
+  \"injury_management_rationale\": \"[rationale]\",
+  \"sleep_hours_suggestion\": \"[hours]\",
+  \"sleep_hours_rationale\": \"[rationale]\",
+  \"hydration_strategy_suggestion\": \"[level of hydration intake in liters]\",
+  \"hydration_strategy_rationale\": \"[rationale]\",
+  \"screening_suggestion\": \"[screening type]\",
+  \"screening_rationale\": \"[rationale]\"
+}
 Athlete Data:
 {
   "healthcareDetails": ${JSON.stringify(healthcareData)},
