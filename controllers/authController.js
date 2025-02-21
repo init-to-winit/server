@@ -1,5 +1,6 @@
 import { db, auth } from '../config/firebaseConfig.js';
 import admin from 'firebase-admin';
+import axios from 'axios';
 
 export const signup = async (req, res) => {
   try {
@@ -80,7 +81,6 @@ export const signup = async (req, res) => {
   }
 };
 
-//login controller
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -89,22 +89,36 @@ export const login = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Sign in user with Firebase Authentication
-    const userRecord = await auth.getUserByEmail(email);
-    console.log(userRecord);
-    const response = {
-      id: userRecord.uid,
-      email: userRecord.email,
-      name: userRecord.displayName,
-      phoneNumber: userRecord.phoneNumber,
-    };
-    // Generate Firebase ID Token
-    const token = await auth.createCustomToken(userRecord.uid);
+    // Firebase REST API URL for signing in
+    const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
+    const SIGN_IN_URL = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
 
-    return res
-      .status(200)
-      .json({ message: 'Login successful', token: token, userData: response });
+    // Make a request to Firebase Authentication REST API
+    const response = await axios.post(SIGN_IN_URL, {
+      email,
+      password,
+      returnSecureToken: true,
+    });
+
+    const {
+      idToken,
+      localId,
+      email: userEmail,
+      displayName,
+      phoneNumber,
+    } = response.data;
+
+    return res.status(200).json({
+      message: 'Login successful',
+      token: idToken, // Return ID token for authentication
+      userData: {
+        id: localId,
+        email: userEmail,
+        name: displayName || '',
+        phoneNumber: phoneNumber || '',
+      },
+    });
   } catch (error) {
-    return res.status(500).json({ error: 'Invalid email or password' });
+    return res.status(401).json({ error: 'Invalid email or password' });
   }
 };

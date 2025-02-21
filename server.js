@@ -1,22 +1,24 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { db } from './config/firebaseConfig.js'; // Ensure the file has .js extension
+import { db } from './config/firebaseConfig.js';
 import authRoutes from './routes/authRoutes.js';
+import dietaryRoutes from './routes/dietaryRoutes.js';
 
-// Load environment variables
 dotenv.config();
 
 // Initialize Express app
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use('/auth', authRoutes);
 
 // Default route
 app.get('/', (req, res) => {
   res.send('Vismoh Backend Running!');
 });
+
+app.use('/auth', authRoutes);
+app.use('/dietary', dietaryRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
