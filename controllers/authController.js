@@ -1,6 +1,8 @@
 import { db, auth } from '../config/firebaseConfig.js';
 import admin from 'firebase-admin';
 import axios from 'axios';
+import jwt from 'jsonwebtoken';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_custom_secret';
 
 export const signup = async (req, res) => {
   try {
@@ -93,7 +95,7 @@ export const login = async (req, res) => {
     const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
     const SIGN_IN_URL = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
 
-    // Make a request to Firebase Authentication REST API
+    // Authenticate user with Firebase REST API
     const response = await axios.post(SIGN_IN_URL, {
       email,
       password,
@@ -108,9 +110,20 @@ export const login = async (req, res) => {
       phoneNumber,
     } = response.data;
 
+    // Generate a custom JWT (valid for 7 days) using Firebase Admin SDK
+    const customToken = jwt.sign(
+      {
+        id: localId,
+        email: userEmail,
+        name: displayName || '',
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' } // Custom token valid for 7 days
+    );
+
     return res.status(200).json({
       message: 'Login successful',
-      token: idToken, // Return ID token for authentication
+      token: customToken, // Use this instead of Firebase's short-lived ID token
       userData: {
         id: localId,
         email: userEmail,

@@ -5,6 +5,8 @@ import { db } from './config/firebaseConfig.js';
 import authRoutes from './routes/authRoutes.js';
 import dietaryRoutes from './routes/dietaryRoutes.js';
 import healthcareRoutes from './routes/healthcareRoutes.js';
+import athleteRoutes from './routes/athleteRoutes.js';
+import connectionRoutes from './routes/connectionRoutes.js';
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.get('/', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/dietary', dietaryRoutes);
 app.use('/healthcare', healthcareRoutes);
+app.use('/athlete', athleteRoutes);
+app.use('/connect', connectionRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
