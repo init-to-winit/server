@@ -8,7 +8,7 @@ import healthcareRoutes from './routes/healthcareRoutes.js';
 import athleteRoutes from './routes/athleteRoutes.js';
 import connectionRoutes from './routes/connectionRoutes.js';
 import fetchAllRoutes from './routes/fetchAllRoutes.js';
-// import genAIRoutes from './routes/genAIRoutes.js';
+import genAIRoutes from './routes/genAIRoutes.js';
 
 dotenv.config();
 
@@ -28,7 +28,7 @@ app.use('/healthcare', healthcareRoutes);
 app.use('/athlete', athleteRoutes);
 app.use('/connect', connectionRoutes);
 app.use('/all', fetchAllRoutes);
-// app.use('/suggestion', genAIRoutes);
+app.use('/suggestion', genAIRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
