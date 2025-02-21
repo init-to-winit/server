@@ -93,6 +93,7 @@ export const login = async (req, res) => {
 
     // Firebase REST API URL for signing in
     const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
+    const JWT_SECRET = process.env.JWT_SECRET;
     const SIGN_IN_URL = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
 
     // Authenticate user with Firebase REST API
@@ -102,36 +103,54 @@ export const login = async (req, res) => {
       returnSecureToken: true,
     });
 
-    const {
-      idToken,
-      localId,
-      email: userEmail,
-      displayName,
-      phoneNumber,
-    } = response.data;
+    const { idToken, localId, email: userEmail, displayName } = response.data;
 
-    // Generate a custom JWT (valid for 7 days) using Firebase Admin SDK
+    // Fetch user role and phone number from Firestore
+    let role = null;
+    let phoneNumber = '';
+
+    const collections = ['Athletes', 'Coaches', 'Sponsors'];
+    for (const collection of collections) {
+      const userDoc = await db.collection(collection).doc(localId).get();
+      if (userDoc.exists) {
+        role = collection.slice(0, -1); // Convert collection name to singular (Athlete, Coach, Sponsor)
+        phoneNumber = userDoc.data().phone || ''; // Fetch phone field if it exists
+        break;
+      }
+    }
+
+    if (!role) {
+      return res
+        .status(403)
+        .json({ error: 'User role not found. Contact support.' });
+    }
+
+    // Generate a custom JWT (valid for 7 days)
     const customToken = jwt.sign(
       {
         id: localId,
         email: userEmail,
         name: displayName || '',
+        role,
+        phoneNumber,
       },
       JWT_SECRET,
-      { expiresIn: '7d' } // Custom token valid for 7 days
+      { expiresIn: '7d' }
     );
 
     return res.status(200).json({
       message: 'Login successful',
-      token: customToken, // Use this instead of Firebase's short-lived ID token
+      token: customToken,
       userData: {
         id: localId,
         email: userEmail,
         name: displayName || '',
-        phoneNumber: phoneNumber || '',
+        phoneNumber,
+        role,
       },
     });
   } catch (error) {
+    console.error('Login error:', error.response?.data || error.message);
     return res.status(401).json({ error: 'Invalid email or password' });
   }
 };
