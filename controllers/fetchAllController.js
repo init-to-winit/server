@@ -2,6 +2,16 @@ import { db } from '../config/firebaseConfig.js';
 
 export const getAllCoaches = async (req, res) => {
   try {
+    const { id, role } = req.body; // Requester ID & Role
+
+    if (!id || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'Requester ID and role are required',
+      });
+    }
+
+    // Fetch all coaches
     const coachesSnapshot = await db.collection('Coaches').get();
 
     if (coachesSnapshot.empty) {
@@ -12,10 +22,35 @@ export const getAllCoaches = async (req, res) => {
       });
     }
 
-    const coaches = coachesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const coaches = await Promise.all(
+      coachesSnapshot.docs.map(async (doc) => {
+        const coachData = doc.data();
+        const coachId = doc.id;
+
+        // Check both possible connection document IDs
+        const connectionRef1 = await db
+          .collection('Connections')
+          .doc(`${id}_${coachId}`)
+          .get();
+        const connectionRef2 = await db
+          .collection('Connections')
+          .doc(`${coachId}_${id}`)
+          .get();
+
+        let connectionStatus = null; // Default to null if no connection exists
+        if (connectionRef1.exists) {
+          connectionStatus = connectionRef1.data().status;
+        } else if (connectionRef2.exists) {
+          connectionStatus = connectionRef2.data().status;
+        }
+
+        return {
+          id: coachId,
+          ...coachData,
+          connectionStatus,
+        };
+      })
+    );
 
     return res.status(200).json({
       success: true,
@@ -32,6 +67,16 @@ export const getAllCoaches = async (req, res) => {
 
 export const getAllSponsors = async (req, res) => {
   try {
+    const { id, role } = req.body; // Requester ID & Role
+
+    if (!id || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'Requester ID and role are required',
+      });
+    }
+
+    // Fetch all sponsors
     const sponsorsSnapshot = await db.collection('Sponsors').get();
 
     if (sponsorsSnapshot.empty) {
@@ -42,10 +87,35 @@ export const getAllSponsors = async (req, res) => {
       });
     }
 
-    const sponsors = sponsorsSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const sponsors = await Promise.all(
+      sponsorsSnapshot.docs.map(async (doc) => {
+        const sponsorData = doc.data();
+        const sponsorId = doc.id;
+
+        // Check both possible connection document IDs
+        const connectionRef1 = await db
+          .collection('Connections')
+          .doc(`${id}_${sponsorId}`)
+          .get();
+        const connectionRef2 = await db
+          .collection('Connections')
+          .doc(`${sponsorId}_${id}`)
+          .get();
+
+        let connectionStatus = null; // Default to null if no connection exists
+        if (connectionRef1.exists) {
+          connectionStatus = connectionRef1.data().status;
+        } else if (connectionRef2.exists) {
+          connectionStatus = connectionRef2.data().status;
+        }
+
+        return {
+          id: sponsorId,
+          ...sponsorData,
+          connectionStatus,
+        };
+      })
+    );
 
     return res.status(200).json({
       success: true,
@@ -101,6 +171,16 @@ export const getAllUsers = async (req, res) => {
 
 export const getAllAthletes = async (req, res) => {
   try {
+    const { id, role } = req.body; // Requester ID & Role
+
+    if (!id || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'Requester ID and role are required',
+      });
+    }
+
+    // Fetch all athletes
     const athletesSnapshot = await db.collection('Athletes').get();
 
     if (athletesSnapshot.empty) {
@@ -111,10 +191,35 @@ export const getAllAthletes = async (req, res) => {
       });
     }
 
-    const athletes = athletesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const athletes = await Promise.all(
+      athletesSnapshot.docs.map(async (doc) => {
+        const athleteData = doc.data();
+        const athleteId = doc.id;
+
+        // Check both possible connection document IDs
+        const connectionRef1 = await db
+          .collection('Connections')
+          .doc(`${id}_${athleteId}`)
+          .get();
+        const connectionRef2 = await db
+          .collection('Connections')
+          .doc(`${athleteId}_${id}`)
+          .get();
+
+        let connectionStatus = null; // Default to null if no connection exists
+        if (connectionRef1.exists) {
+          connectionStatus = connectionRef1.data().status;
+        } else if (connectionRef2.exists) {
+          connectionStatus = connectionRef2.data().status;
+        }
+
+        return {
+          id: athleteId,
+          ...athleteData,
+          connectionStatus,
+        };
+      })
+    );
 
     return res.status(200).json({
       success: true,
@@ -131,6 +236,15 @@ export const getAllAthletes = async (req, res) => {
 
 export const getLeaderboard = async (req, res) => {
   try {
+    const { id, role } = req.body; // User ID & Role (Coach, Sponsor, or Athlete)
+
+    if (!id || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and Role are required',
+      });
+    }
+
     const performanceSnapshot = await db.collection('AthletePerformance').get();
 
     if (performanceSnapshot.empty) {
@@ -155,7 +269,20 @@ export const getLeaderboard = async (req, res) => {
       const { firstName, lastName, sport } = athleteDoc.data();
       const totalMatches = wins + losses;
       const winRate =
-        totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(2) : 0;
+        totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(2) : '0.00';
+
+      // Check connection status based on `sendId` and `receiverId`
+      const connectionSnapshot = await db
+        .collection('Connections')
+        .where('senderId', 'in', [id, athleteId])
+        .where('receiverId', 'in', [id, athleteId]) // Either the user or the athlete should be involved
+        .limit(1)
+        .get();
+
+      let connectionStatus = null; // Default if no connection exists
+      if (!connectionSnapshot.empty) {
+        connectionStatus = connectionSnapshot.docs[0].data().status; // pending, approved, rejected
+      }
 
       leaderboardData.push({
         athleteId,
@@ -163,7 +290,8 @@ export const getLeaderboard = async (req, res) => {
         sport,
         wins,
         losses,
-        winRate: `${winRate}%`,
+        winRate: parseFloat(winRate), // Ensure numeric sorting
+        connectionStatus,
       });
     }
 

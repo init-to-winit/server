@@ -3,28 +3,38 @@ import { db } from '../config/firebaseConfig.js';
 export const addHealthcare = async (req, res) => {
   try {
     const { id } = req.params; // Player UID
-    const { injury_history, hydration_level, sleep_hours, bmi } = req.body;
+    const { injury_history, hydration_level, sleep_hours, height, weight } =
+      req.body;
 
-    if (!hydration_level || !sleep_hours || !bmi) {
+    // Check required fields
+    if (!hydration_level || !sleep_hours || !height || !weight) {
       return res.status(400).json({
         success: false,
-        message: 'Hydration level, sleep hours, and BMI are required',
+        message:
+          'Hydration level, sleep hours, height, and weight are required',
       });
     }
+
+    // Calculate BMI (Body Mass Index) = weight (kg) / (height (m) * height (m))
+    const heightInMeters = height / 100; // Convert height from cm to meters
+    const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(2); // Keep 2 decimal places
 
     const healthcareData = {
       injury_history: injury_history || {}, // Default to empty object if not provided
       hydration_level,
       sleep_hours,
+      height,
+      weight,
       bmi,
     };
 
-    // Save the healthcare data in Firestore under 'healthcare' collection with player's UID as document ID
+    // Save the healthcare data in Firestore under 'Healthcare' collection with player's UID as document ID
     await db.collection('Healthcare').doc(id).set(healthcareData);
 
     return res.status(201).json({
       success: true,
       message: 'Healthcare data added successfully',
+      bmi,
     });
   } catch (error) {
     console.error('Error adding healthcare data:', error);

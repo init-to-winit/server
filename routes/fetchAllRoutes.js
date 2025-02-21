@@ -12,12 +12,12 @@ const router = express.Router();
 
 router.get('/getAllUsers', verifyToken, getAllUsers);
 
-router.get('/getAllAthletes', verifyToken, getAllAthletes);
+router.post('/getAllAthletes', verifyToken, getAllAthletes);
 
-router.get('/getAllCoaches', verifyToken, getAllCoaches);
+router.post('/getAllCoaches', verifyToken, getAllCoaches);
 
-router.get('/getAllSponsors', verifyToken, getAllSponsors);
+router.post('/getAllSponsors', verifyToken, getAllSponsors);
 
-router.get('/getLeaderboardStats', verifyToken, getLeaderboard);
+router.post('/getLeaderboardStats', verifyToken, getLeaderboard);
 
 export default router;
