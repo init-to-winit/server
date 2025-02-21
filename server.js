@@ -7,6 +7,7 @@ import dietaryRoutes from './routes/dietaryRoutes.js';
 import healthcareRoutes from './routes/healthcareRoutes.js';
 import athleteRoutes from './routes/athleteRoutes.js';
 import connectionRoutes from './routes/connectionRoutes.js';
+import fetchAllRoutes from './routes/fetchAllRoutes.js';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use('/dietary', dietaryRoutes);
 app.use('/healthcare', healthcareRoutes);
 app.use('/athlete', athleteRoutes);
 app.use('/connect', connectionRoutes);
+app.use('/all', fetchAllRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
