@@ -123,10 +123,55 @@ export const getConnections = async (req, res) => {
       doc.data()
     );
 
+    // Function to fetch user details based on role and user ID
+    const fetchUserData = async (role, id) => {
+      let collectionName = '';
+      if (role === 'Athlete') {
+        collectionName = 'Athletes';
+      } else if (role === 'Coach') {
+        collectionName = 'Coaches';
+      } else if (role === 'Sponsor') {
+        collectionName = 'Sponsors';
+      }
+
+      if (collectionName) {
+        const userDoc = await db.collection(collectionName).doc(id).get();
+        return userDoc.exists ? userDoc.data() : null;
+      }
+      return null;
+    };
+
+    // Fetch user details for each connection
+    const sentConnectionsWithData = await Promise.all(
+      sentConnections.map(async (connection) => {
+        const userData = await fetchUserData(
+          connection.receiverRole,
+          connection.receiverId
+        );
+        return {
+          ...connection,
+          receiverData: userData,
+        };
+      })
+    );
+
+    const receivedConnectionsWithData = await Promise.all(
+      receivedConnections.map(async (connection) => {
+        const userData = await fetchUserData(
+          connection.senderRole,
+          connection.senderId
+        );
+        return {
+          ...connection,
+          senderData: userData,
+        };
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      sentConnections,
-      receivedConnections,
+      sentConnections: sentConnectionsWithData,
+      receivedConnections: receivedConnectionsWithData,
     });
   } catch (error) {
     console.error('Error fetching connections:', error);
