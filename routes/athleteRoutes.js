@@ -1,10 +1,10 @@
 import express from 'express';
 import verifyToken from '../middleware/auth.js';
-import { addPerformance } from '../controllers/athletePerformanceController.js';
 import {
+  addPerformance,
   getPerformanceDetails,
   updatePerformance,
-} from '../controllers/healthcareContoller.js';
+} from '../controllers/athletePerformanceController.js';
 
 const router = express.Router();
 
