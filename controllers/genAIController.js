@@ -35,7 +35,6 @@ const getAIResponse = async (prompt) => {
     return 'Failed to generate response: ' + error.message;
   }
 };
-
 export const getDietarySuggestions = async (req, res) => {
   try {
     const { athleteId } = req.params;
@@ -73,17 +72,18 @@ export const getDietarySuggestions = async (req, res) => {
 
 Example JSON Output:
 {
-  \"calorie_suggestion\": \"[calories]\",
-  \"protein_suggestion\": \"[grams]\",
-  \"carbs_suggestion\": \"[grams]\",
-  \"fats_suggestion\": \"[grams]\",
-  \"breakfast_suggestion\": \"[items]\",
-  \"lunch_suggestion\": \"[items]\",
-  \"dinner_suggestion\": \"[items]\",
-  \"food_rationale\": \"[rationale of food]\",
-  \"hydration_suggestion\": \"[suggested water intake in liters]\",
-  \"hydration_rationale\": \"[rationale]\"
+  "calorie_suggestion": "[calories]",
+  "protein_suggestion": "[grams]",
+  "carbs_suggestion": "[grams]",
+  "fats_suggestion": "[grams]",
+  "breakfast_suggestion": "[items]",
+  "lunch_suggestion": "[items]",
+  "dinner_suggestion": "[items]",
+  "food_rationale": "[rationale of food]",
+  "hydration_suggestion": "[suggested water intake in liters]",
+  "hydration_rationale": "[rationale]"
 }
+
 Athlete Data:
 {
   "dietaryPlan": ${JSON.stringify(dietaryData)},
@@ -92,7 +92,15 @@ Athlete Data:
 }`;
 
     const dietarySuggestion = await getAIResponse(prompt);
-    return res.json({ success: true, dietarySuggestion });
+
+    // Clean the AI response to remove the code block markdown and parse as JSON
+    const cleanedResponse = dietarySuggestion.replace(/^```json\n|\n```$/g, ''); // Remove ```json and closing ```
+    const suggestionData = JSON.parse(cleanedResponse);
+
+    return res.json({
+      success: true,
+      dietarySuggestion: suggestionData,
+    });
   } catch (error) {
     console.error('Error fetching dietary suggestions:', error);
     return res.status(500).json({ error: 'Failed to get dietary suggestions' });
@@ -128,14 +136,14 @@ export const getPerformanceSuggestions = async (req, res) => {
 
 Example JSON Output:
 {
- \"training_frequencyn\": \"[sessions/week]\",
-  \"training_frequency_rationale\": \"[rationale]\",
-  \"strength_conditioning_focus\": \"[focus area]\",
-  \"strength_rationale\": \"[rationale]\",
-  \"mental_strategy_suggestion\": \"[strategy]\",
-  \"mental_strategy_rationale\": \"[rationale]\",
-  \"loss_analysis_suggestion\": \"[analysis focus]\",
-  \"loss_analysis_rationale\": \"[rationale]\"
+ "training_frequencyn": "[sessions/week]",
+  "training_frequency_rationale": "[rationale]",
+  "strength_conditioning_focus": "[focus area]",
+  "strength_rationale": "[rationale]",
+  "mental_strategy_suggestion": "[strategy]",
+  "mental_strategy_rationale": "[rationale]",
+  "loss_analysis_suggestion": "[analysis focus]",
+  "loss_analysis_rationale": "[rationale]"
 }
 Athlete Data:
 {
@@ -144,7 +152,18 @@ Athlete Data:
 }`;
 
     const performanceSuggestion = await getAIResponse(prompt);
-    return res.json({ success: true, performanceSuggestion });
+
+    // Clean the AI response to remove the code block markdown and parse as JSON
+    const cleanedResponse = performanceSuggestion.replace(
+      /^```json\n|\n```$/g,
+      ''
+    ); // Remove ```json and closing ```
+    const suggestionData = JSON.parse(cleanedResponse);
+
+    return res.json({
+      success: true,
+      performanceSuggestion: suggestionData,
+    });
   } catch (error) {
     console.error('Error fetching performance suggestions:', error);
     return res
@@ -181,14 +200,14 @@ export const getHealthcareSuggestions = async (req, res) => {
     const prompt = `Generate healthcare recommendations. Return values and rationales in JSON format as shown below.
     Example JSON Output:
 {
-  \"injury_management_suggestion\": \"[strategy]\",
-  \"injury_management_rationale\": \"[rationale]\",
-  \"sleep_hours_suggestion\": \"[hours]\",
-  \"sleep_hours_rationale\": \"[rationale]\",
-  \"hydration_strategy_suggestion\": \"[level of hydration intake in liters]\",
-  \"hydration_strategy_rationale\": \"[rationale]\",
-  \"screening_suggestion\": \"[screening type]\",
-  \"screening_rationale\": \"[rationale]\"
+  "injury_management_suggestion": "[strategy]",
+  "injury_management_rationale": "[rationale]",
+  "sleep_hours_suggestion": "[hours (number)]",
+  "sleep_hours_rationale": "[rationale]",
+  "hydration_strategy_suggestion": "[level of hydration intake in liters]",
+  "hydration_strategy_rationale": "[rationale]",
+  "screening_suggestion": "[screening type]",
+  "screening_rationale": "[rationale]"
 }
 Athlete Data:
 {
@@ -197,7 +216,18 @@ Athlete Data:
 }`;
 
     const healthcareSuggestion = await getAIResponse(prompt);
-    return res.json({ success: true, healthcareSuggestion });
+
+    // Clean the AI response to remove the code block markdown and parse as JSON
+    const cleanedResponse = healthcareSuggestion.replace(
+      /^```json\n|\n```$/g,
+      ''
+    ); // Remove ```json and closing ```
+    const suggestionData = JSON.parse(cleanedResponse);
+
+    return res.json({
+      success: true,
+      healthcareSuggestion: suggestionData,
+    });
   } catch (error) {
     console.error('Error fetching healthcare suggestions:', error);
     return res
