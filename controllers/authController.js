@@ -113,7 +113,15 @@ export const login = async (req, res) => {
     for (const collection of collections) {
       const userDoc = await db.collection(collection).doc(localId).get();
       if (userDoc.exists) {
-        role = collection.slice(0, -1); // Convert collection name to singular (Athlete, Coach, Sponsor)
+        if (collection === 'Athletes') {
+          role = 'Athlete';
+        } else if (collection === 'Coaches') {
+          role = 'Coach';
+        } else if (collection === 'Sponsors') {
+          role = 'Sponsor';
+        }
+
+        role; // Convert collection name to singular (Athlete, Coach, Sponsor)
         phoneNumber = userDoc.data().phone || ''; // Fetch phone field if it exists
         break;
       }
