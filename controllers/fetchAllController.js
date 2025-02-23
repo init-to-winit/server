@@ -259,7 +259,7 @@ export const getLeaderboard = async (req, res) => {
 
     // Fetch athlete details from AthletePerformance collection
     for (const doc of performanceSnapshot.docs) {
-      const { wins, losses } = doc.data();
+      const { wins, losses, win_rate } = doc.data();
       const athleteId = doc.id; // Athlete ID used as document ID
 
       // Fetch athlete details from Athletes collection
@@ -290,7 +290,7 @@ export const getLeaderboard = async (req, res) => {
         sport,
         wins,
         losses,
-        winRate: parseFloat(winRate), // Ensure numeric sorting
+        winRate: win_rate, // Ensure numeric sorting
         connectionStatus,
       });
     }
