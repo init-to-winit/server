@@ -1,4 +1,4 @@
-import { db, auth } from '../config/firebaseConfig.js';
+import { db, auth } from '../../config/firebaseConfig.js';
 import admin from 'firebase-admin';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';

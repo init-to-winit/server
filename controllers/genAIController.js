@@ -1,40 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { db } from '../config/firebaseConfig.js';
-import dotenv from 'dotenv';
+import { getAIResponse } from '../services/aiService.js';
 
-dotenv.config();
-
-// Initialize the Google Generative AI client
-const apiKey = process.env.GOOGLE_PROJECT_ID;
-const genAI = new GoogleGenerativeAI(apiKey);
-
-const getAIResponse = async (prompt) => {
-  try {
-    // Get the generative model
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
-      generationConfig: {
-        temperature: 0.7,
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 8192,
-      },
-    });
-
-    // Generate content
-    const result = await model.generateContent(prompt);
-
-    // Extract and return the response text
-    if (result && result.response) {
-      return result.response.text();
-    }
-
-    return 'No valid response received from AI.';
-  } catch (error) {
-    console.error('Error generating AI response:', error);
-    return 'Failed to generate response: ' + error.message;
-  }
-};
 export const getDietarySuggestions = async (req, res) => {
   try {
     const { athleteId } = req.params;
