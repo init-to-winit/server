@@ -23,6 +23,8 @@ export const signup = async (req, res) => {
       experienceLevel,
       latitude,
       longitude,
+      sponsorshipType,
+      companyName,
     } = req.body;
 
     // Validate role
@@ -92,6 +94,9 @@ export const signup = async (req, res) => {
       userData.experienceLevel = experienceLevel;
     } else if (role === 'Coach') {
       userData.sport = sport;
+    } else if (role === 'Sponsor') {
+      userData.sponsorshipType = sponsorshipType;
+      userData.companyName = companyName;
     }
 
     // Save user in Firestore
