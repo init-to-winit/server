@@ -370,3 +370,54 @@ export const getAthlete = async (req, res) => {
       .json({ success: false, message: 'Internal server error' });
   }
 };
+
+export const getUserById = async (req, res) => {
+  try {
+    const { userId, role } = req.params; // Get userId and role from request params
+
+    if (!userId || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and role are required',
+      });
+    }
+
+    let collectionName = '';
+    if (role === 'Athlete') collectionName = 'Athletes';
+    else if (role === 'Coach') collectionName = 'Coaches';
+    else if (role === 'Sponsor') collectionName = 'Sponsors';
+    else {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role specified',
+      });
+    }
+
+    // Query Firestore to find the user by authId
+    const userSnapshot = await db
+      .collection(collectionName)
+      .where('authId', '==', userId)
+      .get();
+
+    if (userSnapshot.empty) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Extract user data
+    const userData = userSnapshot.docs[0].data();
+
+    return res.status(200).json({
+      success: true,
+      user: { id: userSnapshot.docs[0].id, role, ...userData },
+    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error, could not fetch user',
+    });
+  }
+};
