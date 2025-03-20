@@ -16,6 +16,13 @@ export const signup = async (req, res) => {
       password,
       sport,
       position,
+      bloodGroup,
+      address,
+      country,
+      gender,
+      experienceLevel,
+      latitude,
+      longitude,
     } = req.body;
 
     // Validate role
@@ -26,13 +33,20 @@ export const signup = async (req, res) => {
     }
 
     // Validate required fields based on role
-    if (role === 'Athlete' && (!sport || !position)) {
-      return res
-        .status(400)
-        .json({ error: 'Sport and position are required for Athlete' });
+    if (role === 'Athlete' && (!sport || !position || !experienceLevel)) {
+      return res.status(400).json({
+        error: 'Sport, position, and experience level are required for Athlete',
+      });
     }
     if (role === 'Coach' && !sport) {
       return res.status(400).json({ error: 'Sport is required for Coach' });
+    }
+
+    // Validate address coordinates
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      return res
+        .status(400)
+        .json({ error: 'Latitude and longitude must be numbers' });
     }
 
     // Create Firebase Auth User using Admin SDK
@@ -62,12 +76,20 @@ export const signup = async (req, res) => {
       role,
       email,
       phone,
+      bloodGroup,
+      address,
+      country,
+      gender,
+      latitude,
+      longitude,
+      isVerified: false,
       createdAt: new Date().toISOString(),
     };
 
     if (role === 'Athlete') {
       userData.sport = sport;
       userData.position = position;
+      userData.experienceLevel = experienceLevel;
     } else if (role === 'Coach') {
       userData.sport = sport;
     }
