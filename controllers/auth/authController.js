@@ -132,24 +132,27 @@ export const login = async (req, res) => {
 
     const { idToken, localId, email: userEmail, displayName } = response.data;
 
-    // Fetch user role and phone number from Firestore
+    // Fetch user role, phone number, sport, and verification status from Firestore
     let role = null;
     let phoneNumber = '';
+    let sport = null;
+    let isVerified = false;
 
     const collections = ['Athletes', 'Coaches', 'Sponsors'];
     for (const collection of collections) {
       const userDoc = await db.collection(collection).doc(localId).get();
       if (userDoc.exists) {
-        if (collection === 'Athletes') {
-          role = 'Athlete';
-        } else if (collection === 'Coaches') {
-          role = 'Coach';
-        } else if (collection === 'Sponsors') {
-          role = 'Sponsor';
-        }
+        role =
+          collection === 'Athletes'
+            ? 'Athlete'
+            : collection === 'Coaches'
+            ? 'Coach'
+            : 'Sponsor';
 
-        role; // Convert collection name to singular (Athlete, Coach, Sponsor)
-        phoneNumber = userDoc.data().phone || ''; // Fetch phone field if it exists
+        const userData = userDoc.data();
+        phoneNumber = userData?.phone || '';
+        sport = userData?.sport || null;
+        isVerified = userData?.isVerified || false;
         break;
       }
     }
@@ -168,6 +171,8 @@ export const login = async (req, res) => {
         name: displayName || '',
         role,
         phoneNumber,
+        sport,
+        isVerified,
       },
       JWT_SECRET,
       { expiresIn: '7d' }
@@ -182,6 +187,8 @@ export const login = async (req, res) => {
         name: displayName || '',
         phoneNumber,
         role,
+        sport,
+        isVerified,
       },
     });
   } catch (error) {
