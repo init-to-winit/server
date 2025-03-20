@@ -5,7 +5,7 @@ import {
   addPerformance,
   getPerformanceDetails,
   updatePerformance,
-} from '../controllers/athletePerformanceController.js';
+} from '../controllers/athlete/athletePerformanceController.js';
 import {
   analyzePlayerPerformance,
   getPlayerVideoPerformance,

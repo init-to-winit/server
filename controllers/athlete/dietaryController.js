@@ -1,4 +1,4 @@
-import { db } from '../config/firebaseConfig.js';
+import { db } from '../../config/firebaseConfig.js';
 
 const validateDietaryPlan = (dietaryPlan) => {
   if (!dietaryPlan)

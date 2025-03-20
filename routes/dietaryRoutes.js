@@ -4,7 +4,7 @@ import {
   addDietaryPlan,
   getDietaryPlan,
   updateDietaryPlan,
-} from '../controllers/dietaryController.js';
+} from '../controllers/athlete/dietaryController.js';
 
 const router = express.Router();
 

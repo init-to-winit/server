@@ -1,4 +1,4 @@
-import { db } from '../config/firebaseConfig.js';
+import { db } from '../../config/firebaseConfig.js';
 
 export const addPerformance = async (req, res) => {
   try {

@@ -4,7 +4,7 @@ import {
   addHealthcare,
   editHealthcare,
   getHealthcareDetails,
-} from '../controllers/healthcareContoller.js';
+} from '../controllers/athlete/healthcareContoller.js';
 
 const router = express.Router();
 
