@@ -78,53 +78,51 @@ export const analyzePlayerPerformance = async (req, res) => {
       }
     }
 
-    const prompt = `Analyze the provided video to determine if it depicts a RECOGNIZABLE athletic performance.  Respond with YES or NO.  ONLY proceed with analysis if the answer is a definitive YES.
+    const prompt = `Analyze the provided video to determine if it depicts a RECOGNIZABLE athletic performance. Respond with YES or NO. ONLY proceed with analysis if the answer is a definitive YES.
 
-**CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:**
-
-1. **VIDEO VALIDATION (EXTREMELY STRICT CRITERIA):**
-   - The video MUST *clearly and unambiguously* show one or more people ACTIVELY engaged in a recognizable sport or athletic activity.  This requires *obvious physical exertion* and *purposeful movement* directly related to a known sport's techniques or training.
-   - Examples of VALID sports/activities: Basketball, soccer, tennis, American football, running, weightlifting, gymnastics, swimming, volleyball, yoga (demonstrating poses/flows *only*), martial arts, dance (athletic styles like ballet, contemporary, hip-hop - *not* casual social dancing), etc.
-   - **STRICTLY INVALID CONTENT (DO NOT ANALYZE):**
-     - **Buildings, landscapes, structures, or any other inanimate objects.**
-     - **People walking (unless part of a *clearly identifiable* race/speedwalking event), talking, sitting, standing still, or engaging in everyday activities (no matter how active they appear - unless it's a sport!).**
-     - **Animals (of any kind).**
-     - **Video games, animations, or digital content.**
-     - **Everyday activities like cooking, driving, working, cleaning, shopping, etc.**
-     - **Unclear, blurry, obstructed, or poorly lit videos where the activity is NOT clearly identifiable as a sport.**
-     - **Videos where the PRIMARY focus is NOT on the athletic activity itself (e.g., a video that briefly shows someone playing basketball but mostly focuses on something else).**
-
-2. **ANALYSIS (ONLY IF 100% VALID - NO EXCEPTIONS):**
-   - *ONLY* if the video *absolutely and undeniably* meets ALL criteria for a VALID athletic performance:
-     - Provide a detailed analysis of the athlete's performance *in the video*.
-     - Identify *specific* strengths and weaknesses in their *demonstrated* technique.
-     - Offer *concrete* suggestions for improvement based on the video.
-     - Recommend *specific* training areas relevant to the observed performance.
-
-3. **OUTPUT (STRICT JSON - NO EXCEPTIONS):**
-   - **ALWAYS** respond in valid JSON.  No extra text or explanations outside the JSON.
-   - If the video is VALID (100% certain):
-     \`\`\`json
-     {
-       "valid_video": true,
-       "strengths": ["Specific strength 1", "Specific strength 2"],
-       "weaknesses": ["Specific weakness 1", "Specific weakness 2"],
-       "performance_suggestions": ["Concrete suggestion 1", "Concrete suggestion 2"],
-       "training_focus_areas": ["Specific training area 1", "Specific training area 2"]
-     }
-     \`\`\`
-   - If the video is INVALID (for ANY reason):
-     \`\`\`json
-     {
-       "valid_video": false,
-       "reason": "A clear, concise, and SPECIFIC explanation.  Examples: 'The video shows a building; no athletic activity is present.', 'No person is engaged in a recognizable sport or athletic activity.', 'The video quality is too poor to identify any athletic movement.', 'The video shows people walking, which is not suitable for performance analysis.', 'The primary focus is on [incorrect subject], not on athletic performance.'"
-     }
-     \`\`\`
-
-**Video URL:** \${videoUrl}
-
-**YOUR SOLE PURPOSE IS TO ANALYZE ATHLETIC PERFORMANCE.  DO NOT HALLUCINATE. If the video does not show a recognizable athletic activity, return valid_video: false with a specific reason.  Be EXTREMELY STRICT. Err on the side of INVALID if there is ANY doubt whatsoever.  The "valid_video" and "reason" fields are ABSOLUTELY MANDATORY.**
-`;
+    **CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:**
+    
+    1. **VIDEO VALIDATION (STRICT CRITERIA):**
+       - The video MUST clearly show one or more people ACTIVELY engaged in a recognizable sport or athletic activity. This requires obvious physical exertion and purposeful movement directly related to a known sport's techniques or training.
+       - Examples of VALID sports/activities: Basketball, soccer, tennis, American football, running, weightlifting, gymnastics, swimming, volleyball, yoga (demonstrating poses/flows only), martial arts, dance (athletic styles like ballet, contemporary, hip-hop - not casual social dancing), etc.
+       - **INVALID CONTENT (DO NOT ANALYZE):**
+         - Buildings, landscapes, structures, or any other inanimate objects.
+         - Animals (of any kind).
+         - Video games, animations, or digital content.
+         - Everyday activities like cooking, working, cleaning, shopping, etc.
+         - Unclear, blurry, obstructed, or poorly lit videos where the activity is NOT clearly identifiable as a sport.
+    
+    2. **ANALYSIS (ONLY IF 100% VALID - NO EXCEPTIONS):**
+       - ONLY if the video absolutely and undeniably meets ALL criteria for a VALID athletic performance:
+         - Provide a detailed analysis of the athlete's performance in the video.
+         - Identify specific strengths and weaknesses in their demonstrated technique.
+         - Offer concrete suggestions for improvement based on the video.
+         - Recommend specific training areas relevant to the observed performance.
+    
+    3. **OUTPUT (STRICT JSON - NO EXCEPTIONS):**
+       - ALWAYS respond in valid JSON. No extra text or explanations outside the JSON.
+       - If the video is VALID (100% certain):
+         \`\`\`json
+         {
+           "valid_video": true,
+           "strengths": ["Specific strength 1", "Specific strength 2"],
+           "weaknesses": ["Specific weakness 1", "Specific weakness 2"],
+           "performance_suggestions": ["Concrete suggestion 1", "Concrete suggestion 2"],
+           "training_focus_areas": ["Specific training area 1", "Specific training area 2"]
+         }
+         \`\`\`
+       - If the video is INVALID (for ANY reason):
+         \`\`\`json
+         {
+           "valid_video": false,
+           "reason": "A clear, concise, and SPECIFIC explanation. Examples: 'The video shows a building; no athletic activity is present.', 'No person is engaged in a recognizable sport or athletic activity.', 'The video quality is too poor to identify any athletic movement.', 'The video shows people walking, which is not suitable for performance analysis.', 'The primary focus is on [incorrect subject], not on athletic performance.'"
+         }
+         \`\`\`
+    
+    **Video URL:** ${videoUrl}
+    
+    **YOUR SOLE PURPOSE IS TO ANALYZE ATHLETIC PERFORMANCE. DO NOT HALLUCINATE. If the video does not show a recognizable athletic activity, return valid_video: false with a specific reason. Be EXTREMELY STRICT. Err on the side of INVALID if there is ANY doubt whatsoever. The "valid_video" and "reason" fields are ABSOLUTELY MANDATORY.**
+    `;
 
     const analysisResponse = await getAIResponse(prompt);
 
@@ -143,6 +141,7 @@ export const analyzePlayerPerformance = async (req, res) => {
           success: false,
           message: 'Video is not suitable for analysis.',
           reason: suggestionData.reason,
+          gere: { ...suggestionData },
         });
       }
 
