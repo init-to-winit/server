@@ -7,6 +7,7 @@ import {
   getAllUsers,
   getAthlete,
   getLeaderboard,
+  getUserById,
 } from '../controllers/fetchAllController.js';
 
 const router = express.Router();
@@ -22,5 +23,7 @@ router.post('/getAllSponsors', verifyToken, getAllSponsors);
 router.post('/getLeaderboardStats', verifyToken, getLeaderboard);
 
 router.get('/getAthlete/:athleteId', verifyToken, getAthlete);
+
+router.get('/user/:userId/:role', verifyToken, getUserById);
 
 export default router;
