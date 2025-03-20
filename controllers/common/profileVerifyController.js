@@ -156,3 +156,132 @@ export const verifyAthlete = async (req, res) => {
     res.status(500).json({ status: false, error: error.message });
   }
 };
+
+//verifycoach controller
+export const verifyCoach = async (req, res) => {
+  const { id } = req.params;
+  const { aadharNumber, experienceYears, teamAffiliation, licenseNumber } =
+    req.body;
+
+  try {
+    // Check if coach exists
+    const coachRef = db.collection('Coaches').doc(id);
+    const coachSnapshot = await coachRef.get();
+
+    if (!coachSnapshot.exists) {
+      return res.status(404).json({ status: false, error: 'Coach not found' });
+    }
+
+    // Validate Aadhar number
+    if (!aadharNumber || !isValidNumber(aadharNumber)) {
+      return res.status(400).json({
+        status: false,
+        error: 'Valid 12-digit Aadhar number is required',
+      });
+    }
+
+    // Process certificates if provided
+    const certificatesResults = [];
+    const certificatesVerification = [];
+    const files = req.files;
+
+    if (files && files.certificates && files.certificates.length > 0) {
+      for (const certFile of files.certificates) {
+        // Upload certificate to Cloudinary
+        const certResult = await uploadToCloudinary(
+          certFile.buffer,
+          'VISMOH/certificates',
+          certFile.mimetype.startsWith('image') ? 'image' : 'raw'
+        );
+
+        certificatesResults.push({
+          name: certFile.originalname,
+          url: certResult.secure_url,
+          publicId: certResult.public_id,
+          format: certResult.format || certFile.mimetype.split('/')[1],
+        });
+
+        // Verify certificate using AI
+        const aiPrompt = `
+          I need to verify if this appears to be a legitimate coaching certificate.
+          
+          Certificate name: ${certFile.originalname}
+          File type: ${certFile.mimetype}
+          URL: ${certResult.secure_url}
+          
+          Please analyze the following:
+          1. Does this appear to be a genuine coaching certification?
+          2. Are there any obvious signs of forgery or inconsistency?
+          3. Provide a confidence score (0-100) on its authenticity.
+          4. Summarize your findings in one sentence.
+          
+          Format your response as a JSON object with keys: isLegitimate (boolean), confidenceScore (number), reasoning (string), summary (string).
+        `;
+
+        const aiResponse = await getAIResponse(aiPrompt);
+        let aiResult;
+
+        try {
+          aiResult = JSON.parse(aiResponse);
+        } catch (parseError) {
+          aiResult = {
+            isLegitimate: null,
+            confidenceScore: 0,
+            reasoning: 'Failed to parse AI response',
+            summary: aiResponse.substring(0, 100) + '...',
+          };
+        }
+
+        certificatesVerification.push({
+          certificate: certFile.originalname,
+          aiVerification: aiResult,
+        });
+      }
+    }
+
+    // Create verification document in the Verification collection
+    await db
+      .collection('Verification')
+      .doc(id)
+      .set({
+        coachId: id,
+        idVerification: {
+          idType: 'aadhar',
+          aadharNumber: `XXXX-XXXX-${aadharNumber.slice(-4)}`,
+          experienceYears,
+          teamAffiliation,
+          licenseNumber,
+          certificates: certificatesResults,
+          certificatesVerification,
+          verificationStatus: 'verified',
+          verificationMethod: 'ai-assisted',
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      });
+
+    // Update coach reference to verification
+    await coachRef.update({
+      isVerified: true,
+      verifiedAt: new Date().toISOString(),
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: 'Coach verification completed successfully',
+      verification: {
+        status: 'verified',
+        idType: 'aadhar',
+        aadharLastFour: aadharNumber.slice(-4),
+        experienceYears,
+        teamAffiliation,
+        licenseNumber,
+        certificatesCount: certificatesResults.length,
+        certificatesVerified: certificatesVerification.length,
+      },
+    });
+  } catch (error) {
+    console.error('Coach verification error:', error);
+    res.status(500).json({ status: false, error: error.message });
+  }
+};

@@ -27,6 +27,11 @@ export const getAllCoaches = async (req, res) => {
         const coachData = doc.data();
         const coachId = doc.id;
 
+        // Ensure coach is verified
+        if (!coachData.isVerified) {
+          return null;
+        }
+
         // Check both possible connection document IDs
         const connectionRef1 = await db
           .collection('Connections')
@@ -52,9 +57,12 @@ export const getAllCoaches = async (req, res) => {
       })
     );
 
+    // Remove null values (unverified coaches)
+    const verifiedCoaches = coaches.filter((coach) => coach !== null);
+
     return res.status(200).json({
       success: true,
-      coaches,
+      coaches: verifiedCoaches,
     });
   } catch (error) {
     console.error('Error fetching coaches:', error);
@@ -92,6 +100,11 @@ export const getAllSponsors = async (req, res) => {
         const sponsorData = doc.data();
         const sponsorId = doc.id;
 
+        // Ensure sponsor is verified
+        if (!sponsorData.isVerified) {
+          return null;
+        }
+
         // Check both possible connection document IDs
         const connectionRef1 = await db
           .collection('Connections')
@@ -117,9 +130,12 @@ export const getAllSponsors = async (req, res) => {
       })
     );
 
+    // Remove null values (unverified sponsors)
+    const verifiedSponsors = sponsors.filter((sponsor) => sponsor !== null);
+
     return res.status(200).json({
       success: true,
-      sponsors,
+      sponsors: verifiedSponsors,
     });
   } catch (error) {
     console.error('Error fetching sponsors:', error);
@@ -196,6 +212,11 @@ export const getAllAthletes = async (req, res) => {
         const athleteData = doc.data();
         const athleteId = doc.id;
 
+        // Ensure athlete is verified
+        if (!athleteData.isVerified) {
+          return null;
+        }
+
         // Check both possible connection document IDs
         const connectionRef1 = await db
           .collection('Connections')
@@ -221,9 +242,12 @@ export const getAllAthletes = async (req, res) => {
       })
     );
 
+    // Remove null values (unverified athletes)
+    const verifiedAthletes = athletes.filter((athlete) => athlete !== null);
+
     return res.status(200).json({
       success: true,
-      athletes,
+      athletes: verifiedAthletes,
     });
   } catch (error) {
     console.error('Error fetching athletes:', error);
