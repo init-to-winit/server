@@ -10,6 +10,7 @@ import connectionRoutes from './routes/connectionRoutes.js';
 import fetchAllRoutes from './routes/fetchAllRoutes.js';
 import genAIRoutes from './routes/genAIRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import uploadMediaRoutes from './routes/uploadMediaRoutes.js';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/connect', connectionRoutes);
 app.use('/all', fetchAllRoutes);
 app.use('/suggestion', genAIRoutes);
 app.use('/chat', chatRoutes);
+app.use('/upload', uploadMediaRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
