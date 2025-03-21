@@ -3,6 +3,7 @@ import {
   uploadVerificationDocs,
   verifyAthlete,
   verifyCoach,
+  verifySponsor,
 } from '../controllers/common/profileVerifyController.js';
 import verifyToken from '../middleware/auth.js';
 
@@ -15,4 +16,7 @@ router.post(
 );
 
 router.post('/coach/:id/', verifyToken, uploadVerificationDocs, verifyCoach);
+
+router.post('/sponsor/:id/', verifyToken, verifySponsor);
+
 export default router;

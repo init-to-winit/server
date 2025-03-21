@@ -3,6 +3,9 @@ import { db } from '../../config/firebaseConfig.js';
 import { getAIResponse } from '../../services/aiService.js';
 import multer from 'multer';
 import cloudinary from '../../config/cloudinary.js';
+import { get as httpGet } from 'http';
+import { get as httpsGet } from 'https';
+import { promisify } from 'util';
 
 // Configure multer for handling file uploads
 const storage = multer.memoryStorage();
@@ -283,5 +286,124 @@ export const verifyCoach = async (req, res) => {
   } catch (error) {
     console.error('Coach verification error:', error);
     res.status(500).json({ status: false, error: error.message });
+  }
+};
+
+// verify sponsor
+const urlRegex = /^(http[s]?:\/\/)?(www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,5}\.?/;
+
+// Check if the string matches a URL pattern
+function isStringValidUrl(text) {
+  return urlRegex.test(text);
+}
+
+// Check if the URL is accessible, adding 'http://' if no protocol is specified
+function isValidUrl(url, callback) {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'http://' + url;
+  }
+  const client = url.startsWith('https') ? httpsGet : httpGet;
+  client(url, (res) => {
+    const { statusCode } = res;
+    const isSuccessCode = statusCode >= 200 && statusCode < 400; // 2xx or 3xx indicates success
+    callback(null, isSuccessCode);
+  }).on('error', (err) => {
+    callback(err, false);
+  });
+}
+
+// Promisify isValidUrl for use with async/await
+const isValidUrlAsync = promisify(isValidUrl);
+
+// CIN validation regex
+export const CIN_REGEX =
+  /^([LUu]{1})([0-9]{5})([A-Za-z]{2})([0-9]{4})([A-Za-z]{3})([0-9]{6})$/;
+
+// Verify sponsor function
+export const verifySponsor = async (req, res) => {
+  const { id } = req.params;
+  const { aadharNumber, cinNumber, companyWebsite, sponsoredTeams } = req.body;
+
+  try {
+    const sponsorRef = db.collection('Sponsors').doc(id);
+    const sponsorSnapshot = await sponsorRef.get();
+
+    if (!sponsorSnapshot.exists) {
+      return res
+        .status(404)
+        .json({ status: false, error: 'Sponsor not found' });
+    }
+
+    if (!aadharNumber || !isValidNumber(aadharNumber)) {
+      return res.status(400).json({
+        status: false,
+        error: 'Valid 12-digit Aadhar number is required',
+      });
+    }
+
+    if (!cinNumber || !CIN_REGEX.test(cinNumber)) {
+      return res.status(400).json({
+        status: false,
+        error: 'Invalid CIN (Corporate Identification Number)',
+      });
+    }
+
+    // Step 1: Check if companyWebsite is provided and matches URL pattern
+    if (!companyWebsite || !isStringValidUrl(companyWebsite)) {
+      return res.status(400).json({
+        status: false,
+        error: 'Invalid company website URL format',
+      });
+    }
+
+    // Step 2: Check if the URL is accessible
+    try {
+      const isValid = await isValidUrlAsync(companyWebsite);
+      if (!isValid) {
+        return res.status(400).json({
+          status: false,
+          error: 'Company website URL is not accessible',
+        });
+      }
+    } catch (error) {
+      console.error('Error validating URL:', error);
+      return res.status(500).json({
+        status: false,
+        error: 'URL validation failed',
+      });
+    }
+
+    // Update verification collection
+    await db
+      .collection('Verification')
+      .doc(id)
+      .set({
+        sponsorId: id,
+        idVerification: {
+          idType: 'aadhar',
+          aadharNumber: `XXXX-XXXX-${aadharNumber.slice(-4)}`,
+          cinNumber,
+          companyWebsite,
+          sponsoredTeams,
+          verificationStatus: 'verified',
+          verificationMethod: 'manual',
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      });
+
+    // Update sponsor document
+    await sponsorRef.update({
+      isVerified: true,
+      verifiedAt: new Date().toISOString(),
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: 'Sponsor verification completed successfully',
+    });
+  } catch (error) {
+    console.error('Sponsor verification error:', error);
+    return res.status(500).json({ status: false, error: error.message });
   }
 };
