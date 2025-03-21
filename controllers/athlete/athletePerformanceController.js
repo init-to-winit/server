@@ -20,7 +20,7 @@ export const addPerformance = async (req, res) => {
       });
     }
 
-    if (wins + losses > total_matches) {
+    if (wins + losses <= total_matches) {
       return res.status(400).json({
         success: false,
         message: 'Total wins and losses cannot exceed total matches',
