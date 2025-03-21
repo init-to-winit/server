@@ -34,7 +34,7 @@ export const getDietarySuggestions = async (req, res) => {
     }
 
     // Construct AI prompt
-    const prompt = `Generate a dietary plan for an athlete. Return the suggested values and rationales in JSON format as shown below.
+    const prompt = `Generate a dietary plan for an athlete based on Indian cuisine. Return the suggested values and rationales in JSON format as shown below.
 
 Example JSON Output:
 {
